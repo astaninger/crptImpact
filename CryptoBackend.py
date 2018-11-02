@@ -2,6 +2,7 @@ import requests
 from watson_developer_cloud import AssistantV1
 from json import dumps
 import pprint
+import sys
 
 class CryptoExchange(object):
     # abstract factory for a crypto exchange
@@ -169,10 +170,10 @@ if __name__ == '__main__':
                 }           
                 ).get_result()
             text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
-            resp = input(text + ': `')
+            resp = input(text + ': ') if not isinstance(text, list) else input(text)
             if resp == 'exit':
                 print('Goodbye!')
-                return
+                sys.exit()
             talkToWatson(resp, None, False)
         else:
             message = assistant.message(
@@ -188,10 +189,10 @@ if __name__ == '__main__':
                 pp.pprint(functionCalls[splitText[0]](splitText[1]))
                 talkToWatson()
             else:
-                resp = input(text + ': ')
+                resp = input(text + ': ') if not isinstance(text, list) else input(text)
                 if resp == 'exit':
                     print('Goodbye!')
-                    return
+                    sys.exit()
                 elif resp == '':
                     talkToWatson()
                 talkToWatson(resp, message['context'], False)
