@@ -145,42 +145,57 @@ if __name__ == '__main__':
     assistantId=None
     sessionId=None
 
-    response = assistant.list_workspaces().get_result()
+    #response = assistant.list_workspaces().get_result()
 
-    print(dumps(response, indent=2))
-
+    functionCalls = {
+        'latestPrice': exchange.getLatestPrice,
+        'bestTrade': exchange.getBestOrderBookForSymbol,
+        '24HrSummary': exchange.get24HourTicker,
+        'exchangeInfo': exchange.getExchangeInfo,
+        'recentTrades': exchange.getRecentTrades
+    }
+    
     # assistant.delete_session("", "").get_result()
-    first = True
-    lestResp = ''
-    while(True):
+
+    # handles talking to watson through watsons api and uses responses 
+    # as a method for deciding what to call in binance api
+    def talkToWatson(response = None, context = None, first = True):
         resp = None
         if first:
-            first = False
             message = assistant.message(
                 workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
                 input={
-                    'text': 'crypto'
-                },            
-                # context={
-                #     'metadata': {
-                #         'deployment': 'WatsonAssistant'
-                #     }
-                # }
+                    'text': 'welcome'
+                }           
                 ).get_result()
-            resp = input(dumps(message, indent=2))
-            break
+            text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
+            resp = input(text)
+            talkToWatson(resp, None, False)
         else:
-
             message = assistant.message(
                 workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
                 input={
-                    'text': 'What\'s the weather like?'
-                },            
-                context={
-                    'metadata': {
-                        'deployment': 'myDeployment'
-                    }
-                }).get_result()
+                    'text': response
+                },
+                context = context           
+                ).get_result()
+            text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
+            if text == 'exit':
+                print('Goodbye!')
+                return
+            
+            splitText = [0, 0] if len(text) == 0 else text.split(':')
+            if splitText[0] in functionCalls:
+                print(functionCalls[splitText[0]](splitText[1]))
+                talkToWatson()
+            else:
+                resp = input(text)
+                talkToWatson(resp, message['context'], False)
+
+        return
+                
+    talkToWatson()
+        
 
         
 
