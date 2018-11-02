@@ -1,4 +1,6 @@
 import requests
+from watson_developer_cloud import AssistantV1
+from json import dumps
 
 class CryptoExchange(object):
     # abstract factory for a crypto exchange
@@ -125,5 +127,64 @@ class Binance(object):
 
 
 if __name__ == '__main__':
-    pass
+    functionResponses = {}
+    exchange = Binance()
+    # assistant = AssistantV2(
+    #     username="",
+    #     password="",
+    #     url="",
+    #     version=""
+    # )
+    # If service instance provides API key authentication
+    assistant = AssistantV1(
+        version='2018-07-10',
+        ## url is optional, and defaults to the URL below. Use the correct URL for your region.
+        iam_apikey='XUT79VvWy5Qg610kk-kerlwexbFBDsL5-1fPJy64E73o'
+    )
+
+    assistantId=None
+    sessionId=None
+
+    response = assistant.list_workspaces().get_result()
+
+    print(dumps(response, indent=2))
+
+    # assistant.delete_session("", "").get_result()
+    first = True
+    lestResp = ''
+    while(True):
+        resp = None
+        if first:
+            first = False
+            message = assistant.message(
+                workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
+                input={
+                    'text': 'crypto'
+                },            
+                # context={
+                #     'metadata': {
+                #         'deployment': 'WatsonAssistant'
+                #     }
+                # }
+                ).get_result()
+            resp = input(dumps(message, indent=2))
+            break
+        else:
+
+            message = assistant.message(
+                workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
+                input={
+                    'text': 'What\'s the weather like?'
+                },            
+                context={
+                    'metadata': {
+                        'deployment': 'myDeployment'
+                    }
+                }).get_result()
+
+        
+
+
+
+
 
