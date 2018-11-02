@@ -34,6 +34,7 @@ class Binance(object):
     def getExchangeInfo(self):
         response = requests.get(self.baseUrl + '/api/v1/exchangeInfo')
         self.exchangeInfo = response.json()
+        return self.exchangeInfo
     
     #gets the order book for the specified symbol
     def getOrderBook(self, symbol=None, limit=100):
@@ -146,7 +147,6 @@ if __name__ == '__main__':
     sessionId=None
 
     #response = assistant.list_workspaces().get_result()
-
     functionCalls = {
         'latestPrice': exchange.getLatestPrice,
         'bestTrade': exchange.getBestOrderBookForSymbol,
@@ -170,6 +170,9 @@ if __name__ == '__main__':
                 ).get_result()
             text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
             resp = input(text)
+            if resp == 'exit':
+                print('Goodbye!')
+                return
             talkToWatson(resp, None, False)
         else:
             message = assistant.message(
@@ -180,16 +183,15 @@ if __name__ == '__main__':
                 context = context           
                 ).get_result()
             text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
-            if text == 'exit':
-                print('Goodbye!')
-                return
-            
             splitText = [0, 0] if len(text) == 0 else text.split(':')
             if splitText[0] in functionCalls:
                 print(functionCalls[splitText[0]](splitText[1]))
                 talkToWatson()
             else:
                 resp = input(text)
+                if resp == 'exit':
+                    print('Goodbye!')
+                    return
                 talkToWatson(resp, message['context'], False)
 
         return
