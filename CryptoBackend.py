@@ -1,6 +1,7 @@
 import requests
 from watson_developer_cloud import AssistantV1
 from json import dumps
+import pprint
 
 class CryptoExchange(object):
     # abstract factory for a crypto exchange
@@ -128,6 +129,7 @@ class Binance(object):
 
 
 if __name__ == '__main__':
+    pp = pprint.PrettyPrinter(indent=4)
     functionResponses = {}
     exchange = Binance()
     # assistant = AssistantV2(
@@ -140,7 +142,7 @@ if __name__ == '__main__':
     assistant = AssistantV1(
         version='2018-07-10',
         ## url is optional, and defaults to the URL below. Use the correct URL for your region.
-        iam_apikey='XUT79VvWy5Qg610kk-kerlwexbFBDsL5-1fPJy64E73o'
+        iam_apikey='H_Ogh6LD7G8A_LDkJ3r4eXRpRJRskJxhM-tocswOqt3C'
     )
 
     assistantId=None
@@ -155,28 +157,26 @@ if __name__ == '__main__':
         'recentTrades': exchange.getRecentTrades
     }
     
-    # assistant.delete_session("", "").get_result()
-
     # handles talking to watson through watsons api and uses responses 
     # as a method for deciding what to call in binance api
     def talkToWatson(response = None, context = None, first = True):
         resp = None
         if first:
             message = assistant.message(
-                workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
+                workspace_id="5bd275eb-755a-444f-8644-805fdb5f195d",
                 input={
                     'text': 'welcome'
                 }           
                 ).get_result()
             text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
-            resp = input(text)
+            resp = input(text + ': `')
             if resp == 'exit':
                 print('Goodbye!')
                 return
             talkToWatson(resp, None, False)
         else:
             message = assistant.message(
-                workspace_id="e6a0976e-6ea7-4cf0-a9ac-6387c76261d9",
+                workspace_id="5bd275eb-755a-444f-8644-805fdb5f195d",
                 input={
                     'text': response
                 },
@@ -185,13 +185,15 @@ if __name__ == '__main__':
             text = message['output']['text'] if len(message['output']['text']) == 0 else message['output']['text'][0]
             splitText = [0, 0] if len(text) == 0 else text.split(':')
             if splitText[0] in functionCalls:
-                print(functionCalls[splitText[0]](splitText[1]))
+                pp.pprint(functionCalls[splitText[0]](splitText[1]))
                 talkToWatson()
             else:
-                resp = input(text)
+                resp = input(text + ': ')
                 if resp == 'exit':
                     print('Goodbye!')
                     return
+                elif resp == '':
+                    talkToWatson()
                 talkToWatson(resp, message['context'], False)
 
         return
